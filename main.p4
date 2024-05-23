@@ -35,17 +35,14 @@ header ethernet_t {
     bit<16>   etherType;
 }
 
-
-
 header comp_t {
-
     bit<32> srcAddr;
     bit<32> dstAddr;
     bit<16> srcPort;
     bit<16> dstPort;
     bit<8>  protocol;
     bit<16> compType;
-    }
+}
 
 
 header ipv4_t {
@@ -103,6 +100,17 @@ struct headers {
     tcp_t                 tcp;
     udp_t                 udp;
 }
+header comp32_t {
+    bit<32> srcAddr;
+    bit<32> dstAddr;
+    bit<32> srcPort;
+    bit<32> dstPort;
+    bit<32> protocol;
+    bit<32> compType;
+}
+struct comp_value {
+    comp32_t[MY_PACK] comp;
+}
 
 /*************************************************************************
 *********************** P A R S E R  ***********************************
@@ -129,10 +137,10 @@ parser MyParser(packet_in packet,
     state parse_comp {
 	    packet.extract(hdr.comp.next);
 	    transition select(hdr.comp.last.compType) {
-          0: parse_comp;
+            TYPE_COMP: parse_comp;
             TYPE_IPV4: parse_ipv4;
             default: accept;
-	}
+	    }
     }
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
@@ -145,13 +153,13 @@ parser MyParser(packet_in packet,
     }
 
     state parse_tcp {
-	packet.extract(hdr.tcp);
-	transition accept;
+	    packet.extract(hdr.tcp);
+	    transition accept;
     }
 
     state parse_udp {
-	packet.extract(hdr.udp);
-	transition accept;
+	    packet.extract(hdr.udp);
+	    transition accept;
     }
 
 }
@@ -200,34 +208,12 @@ control MyIngress(inout headers hdr,
         default_action = drop();
     }
 
-
+    comp_value c;
 
     apply {
-
-        if (hdr.ipv4.isValid()) {
-
-            if (!hdr.comp[0].isValid()) {
-
-		//meta.tmp_ipv4 = hdr.ipv4;
-		hdr.comp[0].setValid();
-		hdr.comp[1].setValid();
-		hdr.comp[2].setValid();
-		hdr.comp[3].setValid();
-    hdr.comp[0].compType      = 0;
-    hdr.comp[1].compType      = 0;
-    hdr.comp[2].compType      = 0;
-		hdr.comp[3].compType      = hdr.ethernet.etherType;
-
-/*
-		hdr.comp[0].setValid();
-		hdr.comp[0].compType      = hdr.ethernet.etherType;
-    */
-		hdr.ethernet.etherType = TYPE_COMP;
-            }
-
+        if (hdr.ipv4.isValid() && (hdr.tcp.isValid() || hdr.udp.isValid())){
             bit<32> now_i;
             now_array.read(now_i, 0);
-
             if (now_i == 0){
                 tuple_info0.write(0, hdr.ipv4.srcAddr);
                 tuple_info0.write(1, hdr.ipv4.dstAddr);
@@ -242,33 +228,8 @@ control MyIngress(inout headers hdr,
                 }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
-
-                bit<32> value;
-                tuple_info0.read(value, 0);
-                hdr.comp[0].srcAddr = value;
-
-                bit<32> value1;
-                tuple_info0.read(value1, 1);
-                hdr.comp[0].dstAddr = value1;
-
-                bit<32> value2;
-                tuple_info0.read(value2, 2);
-                hdr.comp[0].srcPort = (bit<16>)value2;
-
-                bit<32> value3;
-                tuple_info0.read(value3, 3);
-                hdr.comp[0].dstPort = (bit<16>)value3;
-
-                bit<32> value4;
-                tuple_info0.read(value4, 4);
-                hdr.comp[0].protocol = (bit<8>)value4;
-
             }
-
-
             else if (now_i == 1){
-
-
                 tuple_info1.write(0, hdr.ipv4.srcAddr);
                 tuple_info1.write(1, hdr.ipv4.dstAddr);
                 tuple_info1.write(4, (bit<32>)hdr.ipv4.protocol);
@@ -282,52 +243,8 @@ control MyIngress(inout headers hdr,
                 }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
-
-                bit<32> value;
-                tuple_info0.read(value, 0);
-                hdr.comp[0].srcAddr = value;
-
-                bit<32> value1;
-                tuple_info0.read(value1, 1);
-                hdr.comp[0].dstAddr = value1;
-
-                bit<32> value2;
-                tuple_info0.read(value2, 2);
-                hdr.comp[0].srcPort = (bit<16>)value2;
-
-                bit<32> value3;
-                tuple_info0.read(value3, 3);
-                hdr.comp[0].dstPort = (bit<16>)value3;
-
-                bit<32> value4;
-                tuple_info0.read(value4, 4);
-                hdr.comp[0].protocol = (bit<8>)value4;
-
-                bit<32> value10;
-                tuple_info1.read(value10, 0);
-                hdr.comp[1].srcAddr = value10;
-
-                bit<32> value11;
-                tuple_info1.read(value11, 1);
-                hdr.comp[1].dstAddr = value11;
-
-                bit<32> value12;
-                tuple_info1.read(value12, 2);
-                hdr.comp[1].srcPort = (bit<16>)value12;
-
-                bit<32> value13;
-                tuple_info1.read(value13, 3);
-                hdr.comp[1].dstPort = (bit<16>)value13;
-
-                bit<32> value14;
-                tuple_info1.read(value14, 4);
-                hdr.comp[1].protocol = (bit<8>)value14;
             }
-
-
             else if (now_i == 2){
-
-
                 tuple_info2.write(0, hdr.ipv4.srcAddr);
                 tuple_info2.write(1, hdr.ipv4.dstAddr);
                 tuple_info2.write(4, (bit<32>)hdr.ipv4.protocol);
@@ -341,75 +258,8 @@ control MyIngress(inout headers hdr,
                 }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
-
-                bit<32> value;
-                tuple_info0.read(value, 0);
-                hdr.comp[0].srcAddr = value;
-
-                bit<32> value1;
-                tuple_info0.read(value1, 1);
-                hdr.comp[0].dstAddr = value1;
-
-                bit<32> value2;
-                tuple_info0.read(value2, 2);
-                hdr.comp[0].srcPort = (bit<16>)value2;
-
-                bit<32> value3;
-                tuple_info0.read(value3, 3);
-                hdr.comp[0].dstPort = (bit<16>)value3;
-
-                bit<32> value4;
-                tuple_info0.read(value4, 4);
-                hdr.comp[0].protocol = (bit<8>)value4;
-
-                bit<32> value10;
-                tuple_info1.read(value10, 0);
-                hdr.comp[1].srcAddr = value10;
-
-                bit<32> value11;
-                tuple_info1.read(value11, 1);
-                hdr.comp[1].dstAddr = value11;
-
-                bit<32> value12;
-                tuple_info1.read(value12, 2);
-                hdr.comp[1].srcPort = (bit<16>)value12;
-
-                bit<32> value13;
-                tuple_info1.read(value13, 3);
-                hdr.comp[1].dstPort = (bit<16>)value13;
-
-                bit<32> value14;
-                tuple_info1.read(value14, 4);
-                hdr.comp[1].protocol = (bit<8>)value14;
-
-                bit<32> value20;
-                tuple_info2.read(value20, 0);
-                hdr.comp[2].srcAddr = value20;
-
-                bit<32> value21;
-                tuple_info2.read(value21, 1);
-                hdr.comp[2].dstAddr = value21;
-
-                bit<32> value22;
-                tuple_info2.read(value22, 2);
-                hdr.comp[2].srcPort = (bit<16>)value22;
-
-                bit<32> value23;
-                tuple_info2.read(value23, 3);
-                hdr.comp[2].dstPort = (bit<16>)value23;
-
-                bit<32> value24;
-                tuple_info2.read(value24, 4);
-                hdr.comp[2].protocol = (bit<8>)value24;
-
-
-
-
             }
-
             else if (now_i == 3){
-
-
                 tuple_info3.write(0, hdr.ipv4.srcAddr);
                 tuple_info3.write(1, hdr.ipv4.dstAddr);
                 tuple_info3.write(4, (bit<32>)hdr.ipv4.protocol);
@@ -422,104 +272,73 @@ control MyIngress(inout headers hdr,
                     tuple_info3.write(3, (bit<32>)hdr.tcp.dstPort);
                 }
                 now_i = now_i + 1;
-
-                bit<32> value;
-                tuple_info0.read(value, 0);
-                hdr.comp[0].srcAddr = value;
-
-                bit<32> value1;
-                tuple_info0.read(value1, 1);
-                hdr.comp[0].dstAddr = value1;
-
-                bit<32> value2;
-                tuple_info0.read(value2, 2);
-                hdr.comp[0].srcPort = (bit<16>)value2;
-
-                bit<32> value3;
-                tuple_info0.read(value3, 3);
-                hdr.comp[0].dstPort = (bit<16>)value3;
-
-                bit<32> value4;
-                tuple_info0.read(value4, 4);
-                hdr.comp[0].protocol = (bit<8>)value4;
-
-                bit<32> value10;
-                tuple_info1.read(value10, 0);
-                hdr.comp[1].srcAddr = value10;
-
-                bit<32> value11;
-                tuple_info1.read(value11, 1);
-                hdr.comp[1].dstAddr = value11;
-
-                bit<32> value12;
-                tuple_info1.read(value12, 2);
-                hdr.comp[1].srcPort = (bit<16>)value12;
-
-                bit<32> value13;
-                tuple_info1.read(value13, 3);
-                hdr.comp[1].dstPort = (bit<16>)value13;
-
-                bit<32> value14;
-                tuple_info1.read(value14, 4);
-                hdr.comp[1].protocol = (bit<8>)value14;
-
-                bit<32> value20;
-                tuple_info2.read(value20, 0);
-                hdr.comp[2].srcAddr = value20;
-
-                bit<32> value21;
-                tuple_info2.read(value21, 1);
-                hdr.comp[2].dstAddr = value21;
-
-                bit<32> value22;
-                tuple_info2.read(value22, 2);
-                hdr.comp[2].srcPort = (bit<16>)value22;
-
-                bit<32> value23;
-                tuple_info2.read(value23, 3);
-                hdr.comp[2].dstPort = (bit<16>)value23;
-
-                bit<32> value24;
-                tuple_info2.read(value24, 4);
-                hdr.comp[2].protocol = (bit<8>)value24;
-
-                bit<32> value30;
-                tuple_info3.read(value30, 0);
-                hdr.comp[3].srcAddr = value30;
-
-                bit<32> value31;
-                tuple_info3.read(value31, 1);
-                hdr.comp[3].dstAddr = value31;
-
-                bit<32> value32;
-                tuple_info3.read(value32, 2);
-                hdr.comp[3].srcPort = (bit<16>)value32;
-
-                bit<32> value33;
-                tuple_info3.read(value33, 3);
-                hdr.comp[3].dstPort = (bit<16>)value33;
-
-                bit<32> value34;
-                tuple_info3.read(value34, 4);
-                hdr.comp[3].protocol = (bit<8>)value34;
-
-
+                now_array.write(0, now_i);
             }
-            if (now_i >= MY_PACK) {
-                // If now_i count is larger than the packet count that you want to compress,
-                now_i = 0; // reset now_i to save next packets
-                // process to compress and read or send the information to controller?
+            else if (now_i >= MY_PACK) {
+                tuple_info0.read(c.comp[0].srcAddr, 0);
+                tuple_info0.read(c.comp[0].dstAddr, 1);
+                tuple_info0.read(c.comp[0].srcPort, 2);
+                tuple_info0.read(c.comp[0].dstPort, 3);
+                tuple_info0.read(c.comp[0].protocol, 4);
+                
+                tuple_info1.read(c.comp[1].srcAddr, 0);
+                tuple_info1.read(c.comp[1].dstAddr, 1);
+                tuple_info1.read(c.comp[1].srcPort, 2);
+                tuple_info1.read(c.comp[1].dstPort, 3);
+                tuple_info1.read(c.comp[1].protocol, 4);
+                
+                tuple_info2.read(c.comp[2].srcAddr, 0);
+                tuple_info2.read(c.comp[2].dstAddr, 1);
+                tuple_info2.read(c.comp[2].srcPort, 2);
+                tuple_info2.read(c.comp[2].dstPort, 3);
+                tuple_info2.read(c.comp[2].protocol, 4);
+                
+                tuple_info3.read(c.comp[3].srcAddr, 0);
+                tuple_info3.read(c.comp[3].dstAddr, 1);
+                tuple_info3.read(c.comp[3].srcPort, 2);
+                tuple_info3.read(c.comp[3].dstPort, 3);
+                tuple_info3.read(c.comp[3].protocol, 4);
 
+                hdr.comp[0].setValid();
+		        hdr.comp[1].setValid();
+		        hdr.comp[2].setValid();
+		        hdr.comp[3].setValid();
+                
+                hdr.comp[0].srcAddr  = c.comp[0].srcAddr;
+                hdr.comp[0].dstAddr  = c.comp[0].dstAddr;
+                hdr.comp[0].srcPort  = (bit<16>)c.comp[0].srcPort;
+                hdr.comp[0].dstPort  = (bit<16>)c.comp[0].dstPort;
+                hdr.comp[0].protocol = (bit<8>)c.comp[0].protocol;
+                hdr.comp[0].compType = TYPE_COMP;
+                
+                hdr.comp[1].srcAddr  = c.comp[1].srcAddr;
+                hdr.comp[1].dstAddr  = c.comp[1].dstAddr;
+                hdr.comp[1].srcPort  = (bit<16>)c.comp[1].srcPort;
+                hdr.comp[1].dstPort  = (bit<16>)c.comp[1].dstPort;
+                hdr.comp[1].protocol = (bit<8>) c.comp[1].protocol;
+                hdr.comp[1].compType = TYPE_COMP;
+                
+                hdr.comp[2].srcAddr  = c.comp[2].srcAddr;
+                hdr.comp[2].dstAddr  = c.comp[2].dstAddr;
+                hdr.comp[2].srcPort  = (bit<16>)c.comp[2].srcPort;
+                hdr.comp[2].dstPort  = (bit<16>)c.comp[2].dstPort;
+                hdr.comp[2].protocol = (bit<8>) c.comp[2].protocol;
+                hdr.comp[2].compType = TYPE_COMP;
+                
+                hdr.comp[3].srcAddr  = c.comp[3].srcAddr;
+                hdr.comp[3].dstAddr  = c.comp[3].dstAddr;
+                hdr.comp[3].srcPort  = (bit<16>)c.comp[3].srcPort;
+                hdr.comp[3].dstPort  = (bit<16>)c.comp[3].dstPort;
+                hdr.comp[3].protocol = (bit<8>) c.comp[3].protocol;
+		        hdr.comp[3].compType = hdr.ethernet.etherType;
+		        hdr.ethernet.etherType = TYPE_COMP;
+                now_i = 0;
                 now_array.write(0, now_i);
             }
 
-
-
-            ipv4_lpm.apply();
+            
         }
-
-	else {
-        }
+        ipv4_lpm.apply();
     }
 }
 /*************************************************************************
@@ -538,20 +357,20 @@ control MyEgress(inout headers hdr,
 
 control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
     apply {
-	update_checksum(
-	    hdr.ipv4.isValid(),
+	    update_checksum(
+	        hdr.ipv4.isValid(),
             { hdr.ipv4.version,
-	        hdr.ipv4.ihl,
-		hdr.ipv4.diffserv,
-		hdr.ipv4.priority,
-		hdr.ipv4.totalLen,
-		hdr.ipv4.identification,
-		hdr.ipv4.flags,
-		hdr.ipv4.fragOffset,
-		hdr.ipv4.ttl,
-		hdr.ipv4.protocol,
-		hdr.ipv4.srcAddr,
-		hdr.ipv4.dstAddr },
+	            hdr.ipv4.ihl,
+		        hdr.ipv4.diffserv,
+		        hdr.ipv4.priority,
+		        hdr.ipv4.totalLen,
+		        hdr.ipv4.identification,
+		        hdr.ipv4.flags,
+		        hdr.ipv4.fragOffset,
+		        hdr.ipv4.ttl,
+		        hdr.ipv4.protocol,
+		        hdr.ipv4.srcAddr,
+		        hdr.ipv4.dstAddr },
             hdr.ipv4.hdrChecksum,
             HashAlgorithm.csum16);
     }

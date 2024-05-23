@@ -3,6 +3,8 @@ import os
 import sys
 from scapy.all import *
 from comp_miu import *
+from scapy.all import IP, TCP, Ether, get_if_hwaddr, get_if_list, sendp
+import time
 
 def expand(x):
     yield x
@@ -10,19 +12,11 @@ def expand(x):
         x = x.payload
         yield x
 def packet_callback(packet):
-    data = str(packet.show)
-    data_layers = [l for l in expand(packet) if l.name=='TYPE_COMP']
-    print(data_layers)
-    pattern = "(.*)tos=0x(.*)"
-    global count
-    count = 1
-    print(packet.show())
-    d = re.search(pattern, data)
-    if "tos" in data:
-        dd = d.group(2).split(' ')
-        dd[0] = int(dd[0], 16)
-        print("Packet Count: {0}".format(count))
-
+    bind_layers(Ether, IP, type=TYPE_IPV4)
+    bind_layers(Ether, COMP, type=TYPE_COMP)
+    bind_layers(COMP, COMP, type=TYPE_COMP)
+    bind_layers(COMP, IP, type=TYPE_IPV4) 
+    packet.show()
 
 def main():
     iface = "eth0"
@@ -30,7 +24,7 @@ def main():
     print("sniffing on {}".format(iface))
     # sniff(filter="ip host "+ipv4dstAddr, iface=iface,
     #       prn= lambda x:packet_callback(x))
-    sniff(iface=iface,
+    sniff(iface=iface,#filter="ip host "+ipv4dstAddr,
           prn= lambda x:packet_callback(x))
 
 
