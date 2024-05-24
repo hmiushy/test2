@@ -8,3 +8,5 @@ __pycache__/
 pod-topo/
 p4-mrc/
 logs/
+Makefile
+.#*
