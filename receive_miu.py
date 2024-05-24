@@ -38,12 +38,12 @@ def packet_callback(packet):
     ip_report = IP(pkt[pre_pos:end_pos])
     ip_report.show2(lvl=now_indent)
     
-    if ip_report.proto == TYPE_COMP:
+    if ip_report.proto == IP_PROTO_COMP:
         ## COMP header report ## ------------------------
-        compType = TYPE_COMP
+        compType = IP_PROTO_COMP
         comp_header_count = 1
-        while compType == TYPE_COMP:
-            print("### [COMP HEADER {}] ###".format(comp_header_count))
+        while compType == IP_PROTO_COMP:
+            print("###[ COMP HEADER {} ]###".format(comp_header_count))
             comp_header_count += 1
             pre_pos = end_pos
             end_pos += HEADER_LENGTH_COMP
@@ -65,7 +65,20 @@ def packet_callback(packet):
             udp_report = UDP(pkt[pre_pos:end_pos])
             now_indent += indent
             udp_report.show2(lvl=now_indent)
-      
+    ## TCP header report ## ------------------------
+    elif ip_report.proto == IP_PROTO_TCP:
+        pre_pos = end_pos
+        end_pos += HEADER_LENGTH_TCP
+        tcp_report = TCP(pkt[pre_pos:end_pos])
+        now_indent += indent
+        tcp_report.show2(lvl=now_indent)
+    elif ip_report.proto == IP_PROTO_UDP:
+        pre_pos = end_pos
+        end_pos += HEADER_LENGTH_UDP
+        udp_report = UDP(pkt[pre_pos:end_pos])
+        now_indent += indent
+        udp_report.show2(lvl=now_indent)
+        
     count += 1
     print("packet count: {}".format(count))
 def main():

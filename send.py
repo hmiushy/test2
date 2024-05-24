@@ -31,16 +31,14 @@ def main():
     #macdst = "ff:ff:ff:ff:ff:ff"
     print("sending on interface %s to %s" % (iface, str(addr)))
     pkt = Ether(src=get_if_hwaddr(iface), dst=macdst)
-    ## Usual packet
-    #pkt = pkt /IP(src=src,dst=dst,proto=17)/UDP(dport=1234,sport=random.randint(49152,65535))
-    pkt = pkt /IP(dst=addr) / TCP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
-    #pkt = pkt /IP(dst=addr) / UDP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
 
-    ## debug
-    #pkt = Ether(src=get_if_hwaddr(iface), dst=macdst) /IP(dst=addr,proto=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=17)/UDP() #/ sys.argv[2]
+    if sys.argv[3] == "tcp":
+        pkt = pkt /IP(dst=addr) / TCP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
+    if sys.argv[3] == "udp":
+        pkt = pkt /IP(dst=addr) / UDP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
     pkt.show()
-    #for i in range(4):
-    sendp(pkt, iface=iface, verbose=False)
+    for i in range(int(sys.argv[4])):
+        sendp(pkt, iface=iface, verbose=False)
 
 if __name__ == '__main__':
     main()
