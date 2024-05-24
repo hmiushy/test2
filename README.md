@@ -84,8 +84,7 @@ In receive_miu.py:
 If you want to know more detail, see [here](https://forum.p4.org/t/decoding-header-stacks-in-python-scapy/315/2)
 
 ## You have to do
-You can check only UDP packet.
-If send TCP packet, you can not get the correct result, because ACK packets or something are returned at TCP communications like [fig.2](./png/tcp.png). You probably have to consider 1-way packet compression method.<br>
+You can check only UDP packets. If you send a TCP packet, you can not get the correct result because ACK packets or something is returned at TCP communications, like in Figure 2. Consider a one-way packet compression method. <br>
 <img src="./png/tcp.png" width="600px">
 ## Debug packet
 You can use `send.py` to debug.
