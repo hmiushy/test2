@@ -15,11 +15,13 @@ class COMP(Packet):
 
 
 bind_layers(Ether, IP, type=TYPE_IPV4)
+#bind_layers(IP, COMP, proto=TYPE_COMP, compType=TYPE_COMP)
 bind_layers(IP, COMP, proto=TYPE_COMP)
-bind_layers(COMP, COMP, compType=TYPE_COMP)
+bind_layers(COMP, COMP)
+#bind_layers(COMP, COMP, compType=TYPE_COMP)
 bind_layers(COMP, ICMP, compType=1)
-bind_layers(COMP, TCP, compType=6)
-bind_layers(COMP, UDP, compType=17)
-bind_layers(COMP, ESP, compType=50)
+bind_layers(COMP, TCP,  compType=6)
+bind_layers(COMP, UDP,  compType=17)
+bind_layers(COMP, ESP,  compType=50)
 
 

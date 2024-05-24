@@ -196,7 +196,9 @@ control MyIngress(inout headers hdr,
         hdr.ethernet.dstAddr = dstAddr;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
     }
-
+    
+    
+    
     table ipv4_lpm {
         key = {
             hdr.ipv4.dstAddr: lpm;
@@ -210,11 +212,11 @@ control MyIngress(inout headers hdr,
         default_action = drop();
     }
 
-    comp_value c;
+    register<bit<16>>(100) debug;
 
     apply {
         
-        if(hdr.ipv4.isValid()&&(hdr.tcp.isValid()||hdr.udp.isValid())){
+        if(hdr.ipv4.isValid() && (hdr.tcp.isValid() || hdr.udp.isValid())){
             bit<32> now_i;
             now_array.read(now_i, 0);
             if (now_i == 0){
@@ -222,64 +224,71 @@ control MyIngress(inout headers hdr,
                 tuple_info0.write(1, hdr.ipv4.dstAddr);
                 tuple_info0.write(4, (bit<32>)hdr.ipv4.protocol);
                 if (hdr.tcp.isValid()) {
-                    tuple_info0.write(2, (bit<32>)hdr.udp.srcPort);
-                    tuple_info0.write(3, (bit<32>)hdr.udp.dstPort);
-                }
-                else if(hdr.udp.isValid()) {
                     tuple_info0.write(2, (bit<32>)hdr.tcp.srcPort);
                     tuple_info0.write(3, (bit<32>)hdr.tcp.dstPort);
                 }
+                else if(hdr.udp.isValid()) {
+                    tuple_info0.write(2, (bit<32>)hdr.udp.srcPort);
+                    tuple_info0.write(3, (bit<32>)hdr.udp.dstPort);
+                }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
+                debug.write(1, 111);
             }
             else if (now_i == 1){
                 tuple_info1.write(0, hdr.ipv4.srcAddr);
                 tuple_info1.write(1, hdr.ipv4.dstAddr);
                 tuple_info1.write(4, (bit<32>)hdr.ipv4.protocol);
                 if (hdr.tcp.isValid()) {
-                    tuple_info1.write(2, (bit<32>)hdr.udp.srcPort);
-                    tuple_info1.write(3, (bit<32>)hdr.udp.dstPort);
-                }
-                else if(hdr.udp.isValid()) {
                     tuple_info1.write(2, (bit<32>)hdr.tcp.srcPort);
                     tuple_info1.write(3, (bit<32>)hdr.tcp.dstPort);
                 }
+                else if(hdr.udp.isValid()) {
+                    tuple_info1.write(2, (bit<32>)hdr.udp.srcPort);
+                    tuple_info1.write(3, (bit<32>)hdr.udp.dstPort);
+                }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
+                debug.write(2, 222);
             }
             else if (now_i == 2){
                 tuple_info2.write(0, hdr.ipv4.srcAddr);
                 tuple_info2.write(1, hdr.ipv4.dstAddr);
                 tuple_info2.write(4, (bit<32>)hdr.ipv4.protocol);
                 if (hdr.tcp.isValid()) {
-                    tuple_info2.write(2, (bit<32>)hdr.udp.srcPort);
-                    tuple_info2.write(3, (bit<32>)hdr.udp.dstPort);
-                }
-                else if(hdr.udp.isValid()) {
                     tuple_info2.write(2, (bit<32>)hdr.tcp.srcPort);
                     tuple_info2.write(3, (bit<32>)hdr.tcp.dstPort);
                 }
+                else if(hdr.udp.isValid()) {
+                    tuple_info2.write(2, (bit<32>)hdr.udp.srcPort);
+                    tuple_info2.write(3, (bit<32>)hdr.udp.dstPort);
+                }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
+                
+                debug.write(3, 333);
             }
             else if (now_i == 3){
                 tuple_info3.write(0, hdr.ipv4.srcAddr);
                 tuple_info3.write(1, hdr.ipv4.dstAddr);
                 tuple_info3.write(4, (bit<32>)hdr.ipv4.protocol);
                 if (hdr.tcp.isValid()) {
-                    tuple_info3.write(2, (bit<32>)hdr.udp.srcPort);
-                    tuple_info3.write(3, (bit<32>)hdr.udp.dstPort);
-                }
-                else if(hdr.udp.isValid()) {
                     tuple_info3.write(2, (bit<32>)hdr.tcp.srcPort);
                     tuple_info3.write(3, (bit<32>)hdr.tcp.dstPort);
                 }
+                else if(hdr.udp.isValid()) {
+                    tuple_info3.write(2, (bit<32>)hdr.udp.srcPort);
+                    tuple_info3.write(3, (bit<32>)hdr.udp.dstPort);
+                }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
+                
+                debug.write(4, 444);
             }
             if (now_i >= MY_PACK && !hdr.comp[0].isValid()) {
-
-                // Get each value 
+                comp_value c;
+                
+                // Get each value
                 tuple_info0.read(c.comp[0].srcAddr,  0);
                 tuple_info0.read(c.comp[0].dstAddr,  1);
                 tuple_info0.read(c.comp[0].srcPort,  2);
@@ -303,7 +312,6 @@ control MyIngress(inout headers hdr,
                 tuple_info3.read(c.comp[3].srcPort,  2);
                 tuple_info3.read(c.comp[3].dstPort,  3);
                 tuple_info3.read(c.comp[3].protocol, 4);
-                
 
                 hdr.comp[0].setValid();
 		        hdr.comp[1].setValid();
@@ -342,7 +350,7 @@ control MyIngress(inout headers hdr,
                 now_i = 0;
                 now_array.write(0, now_i);
 
-                
+                /*
                 tuple_info0.write(0, 0);
                 tuple_info0.write(1, 0);
                 tuple_info0.write(2, 0);
@@ -366,7 +374,7 @@ control MyIngress(inout headers hdr,
                 tuple_info3.write(2, 0);
                 tuple_info3.write(3, 0);
                 tuple_info3.write(4, 0);
-
+                */
             }
             
         }
