@@ -57,7 +57,7 @@ header ipv4_t {
 header comp_t {
     bit<32> srcAddr;
     bit<32> dstAddr;
-    bit<16> srcPort;menu://applications/Accessories/org.gnome.Screenshot.desktop
+    bit<16> srcPort;
     bit<16> dstPort;
     bit<8>  protocol;
     bit<8>  compType;
@@ -213,7 +213,8 @@ control MyIngress(inout headers hdr,
     comp_value c;
 
     apply {
-        if(hdr.ipv4.isValid()){
+        
+        if(hdr.ipv4.isValid()&&(hdr.tcp.isValid()||hdr.udp.isValid())){
             bit<32> now_i;
             now_array.read(now_i, 0);
             if (now_i == 0){
@@ -369,7 +370,7 @@ control MyIngress(inout headers hdr,
             }
             
         }
-        ipv4_lpm.apply();
+        ipv4_lpm.apply();    
     }
 }
 /*************************************************************************
