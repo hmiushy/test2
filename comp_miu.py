@@ -14,6 +14,7 @@ class COMP(Packet):
                   ByteField("compType",0)]
 
 
+   
 bind_layers(Ether, IP, type=TYPE_IPV4)
 #bind_layers(IP, COMP, proto=TYPE_COMP, compType=TYPE_COMP)
 #bind_layers(IP, COMP, type=TYPE_COMP)
