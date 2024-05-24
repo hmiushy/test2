@@ -11,19 +11,18 @@ def expand(x):
     while x.payload:
         x = x.payload
         yield x
+global count
+count = 0
 def packet_callback(packet):
-    bind_layers(Ether, IP, type=TYPE_IPV4)
-    bind_layers(Ether, COMP, type=TYPE_COMP)
-    bind_layers(COMP, COMP, type=TYPE_COMP)
-    bind_layers(COMP, IP, type=TYPE_IPV4) 
+    global count
+    print("----------------------------------------------------")
+    count += 1
     packet.show()
-
+    print("packet count: {}".format(count))
 def main():
     iface = "eth0"
     ipv4dstAddr = "10.0.2.2"
     print("sniffing on {}".format(iface))
-    # sniff(filter="ip host "+ipv4dstAddr, iface=iface,
-    #       prn= lambda x:packet_callback(x))
     sniff(iface=iface,#filter="ip host "+ipv4dstAddr,
           prn= lambda x:packet_callback(x))
 
