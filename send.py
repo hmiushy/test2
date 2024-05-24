@@ -37,9 +37,10 @@ def main():
     pkt = pkt /IP(dst=addr) / UDP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
 
     ## debug
-    #pkt = Ether(src=get_if_hwaddr(iface), dst=macdst) /IP(dst=addr,proto=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=17)/UDP()
+    #pkt = Ether(src=get_if_hwaddr(iface), dst=macdst) /IP(dst=addr,proto=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=TYPE_COMP)/COMP(compType=17)/UDP() #/ sys.argv[2]
     pkt.show()
-    sendp(pkt, iface=iface, verbose=False)
+    for i in range(4):
+        sendp(pkt, iface=iface, verbose=False)
 
 if __name__ == '__main__':
     main()
