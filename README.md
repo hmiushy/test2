@@ -21,7 +21,7 @@ These are p4-tutorials codes. have to need the same code to get interface and to
 - pkt = Ether()
 + pkt = Ether(src=get_if_hwaddr(iface), dst=macdst)
 ```
-You can get the header information whether inserted your defined header or not.
+You can check whether or not a defined header is inserted using the following script.
 In receive_miu.py:
 ```diff_python
 + def packet_callback(packet):
