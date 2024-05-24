@@ -102,6 +102,14 @@ struct headers {
     tcp_t                 tcp;
     udp_t                 udp;
 }
+header comp_data {
+    bit<32> srcAddr;
+    bit<32> dstAddr;
+    bit<16> srcPort;
+    bit<16> dstPort;
+    bit<8>  protocol;
+    bit<8>  compType;
+}
 header comp32_t {
     bit<32> srcAddr;
     bit<32> dstAddr;
@@ -213,6 +221,7 @@ control MyIngress(inout headers hdr,
     }
 
     register<bit<16>>(100) debug;
+    //register<comp_data>(MY_PACK) comp_d;
 
     apply {
         
@@ -325,13 +334,13 @@ control MyIngress(inout headers hdr,
                 hdr.comp[0].protocol = (bit<8>)c.comp[0].protocol;
                 hdr.comp[0].compType = PROTOTYPE_COMP;
                 
+                
                 hdr.comp[1].srcAddr  = c.comp[1].srcAddr;
                 hdr.comp[1].dstAddr  = c.comp[1].dstAddr;
                 hdr.comp[1].srcPort  = (bit<16>)c.comp[1].srcPort;
                 hdr.comp[1].dstPort  = (bit<16>)c.comp[1].dstPort;
                 hdr.comp[1].protocol = (bit<8>) c.comp[1].protocol;
                 hdr.comp[1].compType = PROTOTYPE_COMP;
-                //hdr.comp[1].compType = hdr.ipv4.protocol;
                 
                 hdr.comp[2].srcAddr  = c.comp[2].srcAddr;
                 hdr.comp[2].dstAddr  = c.comp[2].dstAddr;
@@ -349,6 +358,19 @@ control MyIngress(inout headers hdr,
 		        hdr.ipv4.protocol = PROTOTYPE_COMP;
                 now_i = 0;
                 now_array.write(0, now_i);
+                
+                debug.write(10, (bit<16>)c.comp[0].protocol);
+                debug.write(11, (bit<16>)hdr.comp[0].compType);
+                debug.write(12, (bit<16>)PROTOTYPE_COMP);
+                
+                debug.write(14, (bit<16>)c.comp[1].protocol);
+                debug.write(15, (bit<16>)hdr.comp[1].compType);
+                
+                debug.write(17, (bit<16>)c.comp[2].protocol);
+                debug.write(18, (bit<16>)hdr.comp[2].compType);
+                
+                debug.write(20, (bit<16>)c.comp[3].protocol);
+                debug.write(21, (bit<16>)hdr.comp[3].compType);
 
                 /*
                 tuple_info0.write(0, 0);

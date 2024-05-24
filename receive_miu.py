@@ -18,6 +18,7 @@ def packet_callback(packet):
     print("----------------------------------------------------")
     count += 1
     packet.show2()
+    print(packet)
     print("packet count: {}".format(count))
 def main():
     iface = "eth0"
