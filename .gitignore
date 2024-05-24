@@ -10,3 +10,4 @@ p4-mrc/
 logs/
 Makefile
 .#*
+.*~
