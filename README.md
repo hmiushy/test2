@@ -85,7 +85,7 @@ If you want to know more detail, see [here](https://forum.p4.org/t/decoding-head
 
 ## You have to do
 You can check only UDP packet.
-If send TCP packet, you can not get the correct result, because ACK packets or something are returned at TCP communications like [fig.2]. You probably have to consider 1-way packet compression method.
+If send TCP packet, you can not get the correct result, because ACK packets or something are returned at TCP communications like [fig.2](./png/tcp.png). You probably have to consider 1-way packet compression method.<br>
 <img src="./png/tcp.png" width="600px">
 ## Debug packet
 You can use `send.py` to debug.
