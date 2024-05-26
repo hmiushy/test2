@@ -5,6 +5,10 @@ register_read now_array
 register_read debug
 
 
+register_read check_val
+register_read check_tl;
+register_read check_ih;
+register_read check_of;
 # ###[ Ethernet ]### 
 #   dst       = 08:00:00:00:02:22
 #   src       = 08:00:00:00:01:00

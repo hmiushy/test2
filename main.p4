@@ -221,11 +221,17 @@ control MyIngress(inout headers hdr,
     }
 
     register<bit<16>>(100) debug;
-    //register<comp_data>(MY_PACK) comp_d;
-
     apply {
-        
-        if(hdr.ipv4.isValid() && (hdr.tcp.isValid() || hdr.udp.isValid())){
+        bit<16> payload_len;
+        payload_len = 1;
+        if (hdr.ipv4.isValid() && hdr.tcp.isValid()) {
+            bit<16> iphdr_len;
+            bit<16> tcphdr_len;
+            iphdr_len = 4*(bit<16>)hdr.ipv4.ihl;
+            tcphdr_len = 4*(bit<16>)hdr.tcp.dataOffset;
+            payload_len = hdr.ipv4.totalLen - (iphdr_len + tcphdr_len);
+        }
+        if(hdr.ipv4.isValid() && payload_len > 0 && (hdr.tcp.isValid() || hdr.udp.isValid())){
             bit<32> now_i;
             now_array.read(now_i, 0);
             if (now_i == 0){
@@ -242,7 +248,6 @@ control MyIngress(inout headers hdr,
                 }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
-                debug.write(1, 111);
             }
             else if (now_i == 1){
                 tuple_info1.write(0, hdr.ipv4.srcAddr);
@@ -258,7 +263,6 @@ control MyIngress(inout headers hdr,
                 }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
-                debug.write(2, 222);
             }
             else if (now_i == 2){
                 tuple_info2.write(0, hdr.ipv4.srcAddr);
@@ -274,8 +278,6 @@ control MyIngress(inout headers hdr,
                 }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
-                
-                debug.write(3, 333);
             }
             else if (now_i == 3){
                 tuple_info3.write(0, hdr.ipv4.srcAddr);
@@ -291,8 +293,6 @@ control MyIngress(inout headers hdr,
                 }
                 now_i = now_i + 1;
                 now_array.write(0, now_i);
-                
-                debug.write(4, 444);
             }
             if (now_i >= MY_PACK && !hdr.comp[0].isValid()) {
                 comp_value c;
@@ -334,7 +334,6 @@ control MyIngress(inout headers hdr,
                 hdr.comp[0].protocol = (bit<8>)c.comp[0].protocol;
                 hdr.comp[0].compType = PROTOTYPE_COMP;
                 
-                
                 hdr.comp[1].srcAddr  = c.comp[1].srcAddr;
                 hdr.comp[1].dstAddr  = c.comp[1].dstAddr;
                 hdr.comp[1].srcPort  = (bit<16>)c.comp[1].srcPort;
@@ -358,46 +357,8 @@ control MyIngress(inout headers hdr,
 		        hdr.ipv4.protocol = PROTOTYPE_COMP;
                 now_i = 0;
                 now_array.write(0, now_i);
-                
-                debug.write(10, (bit<16>)c.comp[0].protocol);
-                debug.write(11, (bit<16>)hdr.comp[0].compType);
-                debug.write(12, (bit<16>)PROTOTYPE_COMP);
-                
-                debug.write(14, (bit<16>)c.comp[1].protocol);
-                debug.write(15, (bit<16>)hdr.comp[1].compType);
-                
-                debug.write(17, (bit<16>)c.comp[2].protocol);
-                debug.write(18, (bit<16>)hdr.comp[2].compType);
-                
-                debug.write(20, (bit<16>)c.comp[3].protocol);
-                debug.write(21, (bit<16>)hdr.comp[3].compType);
-
-                /*
-                tuple_info0.write(0, 0);
-                tuple_info0.write(1, 0);
-                tuple_info0.write(2, 0);
-                tuple_info0.write(3, 0);
-                tuple_info0.write(4, 0);
-
-                tuple_info1.write(0, 0);
-                tuple_info1.write(1, 0);
-                tuple_info1.write(2, 0);
-                tuple_info1.write(3, 0);
-                tuple_info1.write(4, 0);
-
-                tuple_info2.write(0, 0);
-                tuple_info2.write(1, 0);
-                tuple_info2.write(2, 0);
-                tuple_info2.write(3, 0);
-                tuple_info2.write(4, 0);
-
-                tuple_info3.write(0, 0);
-                tuple_info3.write(1, 0);
-                tuple_info3.write(2, 0);
-                tuple_info3.write(3, 0);
-                tuple_info3.write(4, 0);
-                */
             }
+            
             
         }
         ipv4_lpm.apply();    
