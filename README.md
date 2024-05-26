@@ -83,9 +83,21 @@ In receive_miu.py:
 ```
 If you want to know more detail, see [here](https://forum.p4.org/t/decoding-header-stacks-in-python-scapy/315/2)
 
-## You have to do
+## You have to do (Resolved)
 You can get only UDP packets. If you send a TCP packet, you can not get the correct result because ACK packets or something is returned at TCP communications, like in [Figure 2](./png/tcp.png). The registers also count the packet and compress the return packet. I don't know but have to consider a one-way packet compression method. <br>
-<img src="./png/tcp.png" width="600px">
+<img src="./png/tcp.png" width="600px"> <br>
+Maybe there's an easier method but I just implement it to check the data payload under tcp:
+```diff_C
++        bit<16> payload_len;
++        payload_len = 1;
++        if (hdr.ipv4.isValid() && hdr.tcp.isValid()) {
++            bit<16> iphdr_len;
++            bit<16> tcphdr_len;
++            iphdr_len = 4*(bit<16>)hdr.ipv4.ihl;
++            tcphdr_len = 4*(bit<16>)hdr.tcp.dataOffset;
++            payload_len = hdr.ipv4.totalLen - (iphdr_len + tcphdr_len);
++        }
+```
 ## Run script
 ```bash
 # terminal in host2
